@@ -1,0 +1,26 @@
+name: GitHub Organization Repository Collaborator Action
+
+inputs:
+  token:
+    description: 'A Personal Access token with user:email, repo and admin:org scope'
+    required: true
+  org:
+    description: 'GitHub organization to retrieve data for'
+    required: false
+  role:
+    description: 'The repo collaborator role to query for'
+    # ADMIN, MAINTAIN, WRITE, TRIAGE, READ
+    default: 'ADMIN'
+    required: false
+  committer-name:
+    description: 'The name of the committer that will appear in the Git history'
+    default: 'github-actions'
+    required: false
+  committer-email:
+    description: 'The committer email that will appear in the Git history'
+    default: 'github-actions@github.com'
+    required: false
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

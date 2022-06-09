@@ -1,6 +1,6 @@
 # GitHub Organization Repository Collaborator Action
 
-> A GitHub Action to generate a report which contains all the repo collaborators with Admin permissions per repositiry and their email addresses for a GitHub organization.
+> A GitHub Action to generate a report which contains repository collaborator details for a GitHub organization.
 
 ## Usage
 
@@ -30,10 +30,17 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Get repo collaborator report
-        uses: nicklegan/github-org-repo-collaborator-action@v1.0.0
+        uses: nicklegan/github-org-repo-collaborator-action@v2.0.0
         with:
           token: ${{ secrets.ORG_TOKEN }}
-          org: ''
+        # org: ''
+        # affil: 'ALL'
+        # permission: 'ADMIN'
+        # days: '90'
+        # json: 'FALSE'
+        # appid: ${{ secrets.APPID }}
+        # privatekey: ${{ secrets.PRIVATEKEY }}
+        # installationid: ${{ secrets.INSTALLATIONID }}
 ```
 
 ## GitHub secrets
@@ -52,30 +59,61 @@ jobs:
 
 ## Action inputs
 
-If the organization name in the workflow is left blank, the Action will generate a report for the organization the workflow is triggered from.
+If the organization name in the workflow is left blank, the Action will generate a report for the organization the workflow is located in.
 
-| Name              | Description                                                   | Default                     | Options        | Required |
-| :---------------- | :------------------------------------------------------------ | :-------------------------- | :------------- | :------- |
-| `org`             | Organization different than the default workflow context      |                             | [workflow.yml] | `false`  |
-| `role`            | The repo collaborator role to query for                       | `ADMIN`                     | [action.yml]   | `false`  |
-| `committer-name`  | The name of the committer that will appear in the Git history | `github-actions`            | [action.yml]   | `false`  |
-| `committer-email` | The committer email that will appear in the Git history       | `github-actions@github.com` | [action.yml]   | `false`  |
+| Name              | Description                                                         | Default                     | Options        | Required |
+| :---------------- | :------------------------------------------------------------------ | :-------------------------- | :------------- | :------- |
+| `org`             | Organization different than the default workflow context            |                             | [workflow.yml] | `false`  |
+| `permission`      | Permission to query for (ADMIN, MAINTAIN, WRITE, TRIAGE, READ, ALL) | `ADMIN`                     | [workflow.yml] | `false`  |
+| `affil`           | Collaborator type to query for (ALL, DIRECT, OUTSIDE)               | `ALL`                       | [workflow.yml] | `false`  |
+| `days`            | Amount of days to look back for contributions                       | `90`                        | [workflow.yml] | `false`  |
+| `json`            | Export an additional report in JSON format                          | `FALSE`                     | [workflow.yml] | `false`  |
+| `committer-name`  | The name of the committer that will appear in the Git history       | `github-actions`            | [action.yml]   | `false`  |
+| `committer-email` | The committer email that will appear in the Git history             | `github-actions@github.com` | [action.yml]   | `false`  |
 
 [workflow.yml]: #Usage 'Usage'
 [action.yml]: action.yml 'action.yml'
 
 ## CSV layout
 
-| Column          | Description                                                        |
-| :-------------- | :----------------------------------------------------------------- |
-| Repository      | Repo the user is an admin of                                       |
-| Repo Visibility | Private, public or internal visibility                             |
-| Username        | GitHub username                                                    |
-| Full name       | GitHub profile name                                                |
-| SSO email       | GitHub NameID email (only available if org SSO setting is enabled) |
-| Verified email  | GitHub verified domain email                                       |
-| Public email    | GitHub account email                                               |
-| Role            | Repository role                                                    |
-| Organization    | Org the repo is part of                                            |
+| Column               | Description                                                                         |
+| :------------------- | :---------------------------------------------------------------------------------- |
+| Repository           | Repository the user is a collaborator of                                            |
+| Repo Visibility      | Private, public or internal repository visibility                                   |
+| Username             | GitHub username                                                                     |
+| Full name            | GitHub profile name                                                                 |
+| SSO email            | GitHub NameID email (only available if org SSO setting is enabled)                  |
+| Verified email       | GitHub verified domain email                                                        |
+| Public email         | GitHub account email                                                                |
+| Repo permission      | Repository permissions for the user                                                 |
+| Organization role    | Whether the user is a member, admin (org owner) or outside collaborator             |
+| Active contributions | If the user made contributions during the set interval                              |
+| Total contributions  | Total number of organization contributions made by the user during the set interval |
+| User created         | Date the user account was created                                                   |
+| User updated         | Date the user account settings were last updated                                    |
+| Organization         | Organization the repo belongs to                                                    |
 
-A CSV report file will be saved in the repository reports folder using the following naming format: **`organization`-repo-collaborator-report.csv**.
+:bulb: A CSV report file will be saved in the repository reports folder using the following naming format: **`organization`-`affil`-`permission`-report.csv**.
+
+## GitHub App authentication
+
+As an option you can use GitHub App authentication to generate the report.
+
+[Register](https://docs.github.com/developers/apps/building-github-apps/creating-a-github-app) a new organization/personal owned GitHub App with the below permissions:
+
+| GitHub App Permission                     | Access           |
+| :---------------------------------------- | :--------------- |
+| `Organization Permissions:Administration` | `read`           |
+| `Organization Permissions:Members`        | `read`           |
+| `Repository Permissions:Contents`         | `read and write` |
+| `User Permissions:Email addresses`        | `read`           |
+
+After registration install the GitHub App to your organization. Store the below App values as secrets.
+
+### GitHub App secrets
+
+| Name             | Value                             | Required |
+| :--------------- | :-------------------------------- | :------- |
+| `APPID`          | GitHub App ID number              | `true`   |
+| `PRIVATEKEY`     | Content of private key .pem file  | `true`   |
+| `INSTALLATIONID` | GitHub App installation ID number | `true`   |

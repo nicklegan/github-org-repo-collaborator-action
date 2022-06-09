@@ -7,10 +7,17 @@ inputs:
   org:
     description: 'GitHub organization to retrieve data for'
     required: false
-  role:
-    description: 'The repo collaborator role to query for'
-    # ADMIN, MAINTAIN, WRITE, TRIAGE, READ
-    default: 'ADMIN'
+  affil: 
+    description: 'Affiliation to filter by'
+    required: false
+  permission:
+    description: 'The repo collaborator permission to query for'
+    required: false
+  days:
+    description: 'Number of days to look back for contributions'
+    required: false
+  json:
+    description: 'Additionally export report in JSON format'
     required: false
   committer-name:
     description: 'The name of the committer that will appear in the Git history'
@@ -20,7 +27,17 @@ inputs:
     description: 'The committer email that will appear in the Git history'
     default: 'github-actions@github.com'
     required: false
+  appid:
+    required: false
+  privatekey:
+    required: false
+  installationid:
+    required: false
 
 runs:
   using: 'node16'
   main: 'dist/index.js'
+
+branding:
+  icon: 'list'
+  color: 'blue'

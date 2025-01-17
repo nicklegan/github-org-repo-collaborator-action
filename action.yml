@@ -4,7 +4,7 @@ description: 'A GitHub Action to generate a report which contains repository col
 inputs:
   token:
     description: 'A Personal Access token with user:email, repo and admin:org scope'
-    required: true
+    required: false
   org:
     description: 'GitHub organization to retrieve data for'
     required: false

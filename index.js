@@ -2,7 +2,7 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const { stringify } = require('csv-stringify/sync')
 const arraySort = require('array-sort')
-const token = core.getInput('token', { required: true })
+const token = core.getInput('token', { required: false })
 const eventPayload = require(process.env.GITHUB_EVENT_PATH)
 const org = core.getInput('org', { required: false }) || eventPayload.organization.login
 const { owner, repo } = github.context.repo
@@ -39,6 +39,11 @@ if (appId && privateKey && installationId) {
   })
 } else {
   octokit = github.getOctokit(token)
+}
+
+// Utility function to introduce a delay
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 // Orchestrator
@@ -90,7 +95,7 @@ async function repoNames(collabsArray) {
     const query = /* GraphQL */ `
       query ($owner: String!, $cursorID: String) {
         organization(login: $owner) {
-          repositories(first: 100, after: $cursorID) {
+          repositories(first: 50, after: $cursorID) {
             nodes {
               name
               visibility
@@ -127,6 +132,9 @@ async function repoNames(collabsArray) {
         await collabRole(repo, collabsArray)
         console.log(repo.name)
       }
+
+      // Introduce a delay of 5 seconds between requests
+      await sleep(5000)
     } while (hasNextPage)
   } catch (error) {
     core.setFailed(error.message)
@@ -229,6 +237,9 @@ async function collabRole(repo, collabsArray) {
           collabsArray.push({ orgRepo, login, name, publicEmail, verifiedEmail, permission, visibility, org, createdAt, updatedAt, activeContrib, sumContrib })
         }
       }
+
+      // Introduce a delay of 5 seconds between requests
+      await sleep(5000)
     } while (hasNextPage)
   } catch (error) {}
 }
@@ -270,7 +281,7 @@ async function ssoEmail(emailArray) {
       query ($org: String!, $cursorID: String) {
         organization(login: $org) {
           samlIdentityProvider {
-            externalIdentities(first: 100, after: $cursorID) {
+            externalIdentities(first: 50, after: $cursorID) {
               totalCount
               edges {
                 node {
@@ -319,6 +330,9 @@ async function ssoEmail(emailArray) {
 
         emailArray.push({ login, ssoEmail })
       }
+
+      // Introduce a delay of 5 seconds between requests
+      await sleep(5000)
     } while (hasNextPageMember)
   } catch (error) {
     core.setFailed(error.message)
@@ -332,7 +346,7 @@ async function membersWithRole(memberArray) {
     const query = /* GraphQL */ `
       query ($owner: String!, $cursorID: String) {
         organization(login: $owner) {
-          membersWithRole(first: 100, after: $cursorID) {
+          membersWithRole(first: 50, after: $cursorID) {
             edges {
               cursor
               node {
@@ -371,6 +385,9 @@ async function membersWithRole(memberArray) {
         }
         memberArray.push({ login: member.node.login, role: member.role })
       }
+
+      // Introduce a delay of 5 seconds between requests
+      await sleep(5000)
     } while (hasNextPage)
   } catch (error) {
     core.setFailed(error.message)
@@ -404,6 +421,7 @@ async function mergeArrays(collabsArray, emailArray, mergeArray, memberArray) {
 
       mergeArray.push(ssoCollab)
     })
+    console.log(JSON.stringify(emailArray))
   } catch (error) {
     core.setFailed(error.message)
   }

@@ -27,10 +27,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get repo collaborator report
-        uses: nicklegan/github-org-repo-collaborator-action@v2.0.0
+        uses: nicklegan/github-org-repo-collaborator-action@v2.0.1
         with:
           token: ${{ secrets.ORG_TOKEN }}
         # org: ''
